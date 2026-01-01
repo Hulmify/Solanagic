@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { type WalletAccount, type Network, getBalance, requestAirdrop, sendSol } from '../services/wallet';
 import { clearApiKey, clearWallet, loadApiKey, saveApiKey } from '../services/storage';
 import { initAI, chatWithAI } from '../services/ai';
@@ -32,6 +32,9 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
     const [isThinking, setIsThinking] = useState(false);
     const [apiKeyText, setApiKeyText] = useState('');
 
+    // Reference to the interval
+    const intervalRef = useRef<NodeJS.Timeout>(null);
+
     /**
      * Refreshes the wallet balance from the network.
      */
@@ -55,6 +58,23 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
             }
         });
     }, []);
+
+    // Clear status after 10 seconds
+    useEffect(() => {
+        // If status is set, clear previous interval and set new interval
+        if (status) {
+            // Clear previous interval
+            if (intervalRef.current) clearInterval(intervalRef.current);
+
+            // Set new interval
+            intervalRef.current = setInterval(() => setStatus(''), 10000);
+        }
+
+        // Clear interval on unmount
+        return () => {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+        }
+    }, [status]);
 
 
     /**
