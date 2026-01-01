@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate": "npm run clean && mkdir -p build && npm run build && zip -r build/solanagic.zip dist/*",
+    "clean": "rm -rf build && rm -rf dist"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

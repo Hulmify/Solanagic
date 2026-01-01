@@ -156,7 +156,7 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
             <div className="view-container dashboard-view">
                 <div className="header">
                     <button onClick={() => setIsSending(false)} className="back-btn">← Back</button>
-                    <h2>Send SOL</h2>
+                    <h2 style={{ margin: '0' }}>Send SOL</h2>
                 </div>
                 <div className="send-form">
                     <div className="input-group">
@@ -189,12 +189,7 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
     if (isAI) {
         return (
             <div className="view-container dashboard-view">
-                <div className="header" style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    marginBottom: '1rem'
-                }}>
+                <div className="header">
                     <button onClick={() => setIsAI(false)} className="back-btn">← Back</button>
                     <h2 style={{ margin: '0' }}>Smart Assistant</h2>
                 </div>
@@ -251,7 +246,6 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
                                         color: '#fff',
                                         padding: '16px 24px',
                                         borderRadius: '12px',
-                                        maxWidth: '80%',
                                         fontSize: '0.9rem',
                                         ["--text-secondary" as any]: "#fff",
                                     }}>
