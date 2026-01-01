@@ -52,7 +52,7 @@ export const createWalletFromMnemonic = (mnemonic: string): WalletAccount => {
  * @param {Network} network - The Solana network to connect to.
  * @returns {Promise<number>} The balance in SOL.
  */
-export const getBalance = async (publicKeyStr: string, network: Network): Promise<number> => {
+export const getBalance = async (publicKeyStr: string, network: Network): Promise<number | null> => {
     try {
         const connection = new Connection(clusterApiUrl(network), 'confirmed');
         const publicKey = new PublicKey(publicKeyStr);
@@ -60,7 +60,7 @@ export const getBalance = async (publicKeyStr: string, network: Network): Promis
         return balance / LAMPORTS_PER_SOL;
     } catch (e) {
         console.error("Failed to get balance", e);
-        return 0;
+        return null;
     }
 };
 
