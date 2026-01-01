@@ -272,7 +272,7 @@ button {
 .logout-btn {
   background: transparent;
   color: var(--text-primary);
-  font-size: 12px;
+  font-size: 14px;
   padding: 4px 8px;
 }
 
