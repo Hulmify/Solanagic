@@ -6,23 +6,40 @@ interface SetupViewProps {
     onWalletCreated: (wallet: WalletAccount) => void;
 }
 
+/**
+ * The Setup view for creating or importing a wallet.
+ * 
+ * @param {SetupViewProps} props - The component props.
+ * @returns {JSX.Element} The rendered Setup component.
+ */
 export default function SetupView({ onWalletCreated }: SetupViewProps) {
     const [step, setStep] = useState<'start' | 'create' | 'import'>('start');
     const [mnemonic, setMnemonic] = useState('');
     const [importMnemonic, setImportMnemonic] = useState('');
 
+    /**
+     * Handles the initiation of the wallet creation process.
+     * Generates a new mnemonic and moves to the 'create' step.
+     */
     const handleCreate = () => {
         const m = generateMnemonic();
         setMnemonic(m);
         setStep('create');
     };
 
+    /**
+     * Confirms the wallet creation.
+     * Creates the wallet from the mnemonic, saves it, and notifies the parent.
+     */
     const handleConfirmCreate = async () => {
         const wallet = createWalletFromMnemonic(mnemonic);
         await saveWallet(wallet);
         onWalletCreated(wallet);
     };
 
+    /**
+     * Handles importing an existing wallet using a mnemonic.
+     */
     const handleImport = async () => {
         try {
             const wallet = createWalletFromMnemonic(importMnemonic.trim());

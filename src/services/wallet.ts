@@ -16,10 +16,22 @@ export interface WalletAccount {
     mnemonic?: string;
 }
 
+/**
+ * Generates a new 12-word mnemonic phrase.
+ * 
+ * @returns {string} A 12-word mnemonic string.
+ */
 export const generateMnemonic = (): string => {
     return bip39.generateMnemonic();
 };
 
+/**
+ * Creates a wallet account from a given mnemonic phrase.
+ * Uses the standard derivation path "m/44'/501'/0'/0'".
+ * 
+ * @param {string} mnemonic - The 12-word mnemonic phrase.
+ * @returns {WalletAccount} The generated wallet account containing public/secret keys.
+ */
 export const createWalletFromMnemonic = (mnemonic: string): WalletAccount => {
     const seed = bip39.mnemonicToSeedSync(mnemonic);
     const path = "m/44'/501'/0'/0'";
@@ -33,6 +45,13 @@ export const createWalletFromMnemonic = (mnemonic: string): WalletAccount => {
     };
 };
 
+/**
+ * Gets the balance of a wallet in SOL.
+ * 
+ * @param {string} publicKeyStr - The public key of the wallet as a string.
+ * @param {Network} network - The Solana network to connect to.
+ * @returns {Promise<number>} The balance in SOL.
+ */
 export const getBalance = async (publicKeyStr: string, network: Network): Promise<number> => {
     try {
         const connection = new Connection(clusterApiUrl(network), 'confirmed');
@@ -45,6 +64,12 @@ export const getBalance = async (publicKeyStr: string, network: Network): Promis
     }
 };
 
+/**
+ * Requests an airdrop of 1 SOL on devnet.
+ * 
+ * @param {string} publicKeyStr - The public key to receive the airdrop.
+ * @returns {Promise<string>} The transaction signature.
+ */
 export const requestAirdrop = async (publicKeyStr: string): Promise<string> => {
     const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
     const publicKey = new PublicKey(publicKeyStr);
@@ -59,6 +84,15 @@ export const requestAirdrop = async (publicKeyStr: string): Promise<string> => {
     return signature;
 };
 
+/**
+ * Sends SOL from one wallet to another.
+ * 
+ * @param {string} fromSecretKeyHex - The sender's secret key in hex format.
+ * @param {string} toPublicKeyStr - The recipient's public key.
+ * @param {number} amount - The amount of SOL to send.
+ * @param {Network} network - The network to send the transaction on.
+ * @returns {Promise<string>} The transaction signature.
+ */
 export const sendSol = async (
     fromSecretKeyHex: string,
     toPublicKeyStr: string,

@@ -4,6 +4,12 @@ import type { WalletAccount, Network } from './services/wallet';
 import SetupView from './views/SetupView';
 import DashboardView from './views/DashboardView';
 
+/**
+ * The main application component.
+ * Manages the wallet state, network selection, and routing between SetupView and DashboardView.
+ * 
+ * @returns {JSX.Element} The rendered App component.
+ */
 function App() {
   const [wallet, setWallet] = useState<WalletAccount | null>(null);
   const [network, setNetwork] = useState<Network>('devnet');
@@ -20,6 +26,11 @@ function App() {
     init();
   }, []);
 
+  /**
+   * Handles network changes and persists the selection.
+   * 
+   * @param {Network} n - The selected network.
+   */
   const handleNetworkChange = async (n: Network) => {
     setNetwork(n);
     await saveNetwork(n);

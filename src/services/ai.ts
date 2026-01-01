@@ -13,6 +13,12 @@ const SYSTEM_PROMPT =
     "Be concise, technically accurate";
 
 
+/**
+ * Initializes the Google Generative AI model with the provided API key.
+ * Sets up the model configuration and starts a chat session.
+ * 
+ * @param {string} apiKey - The API key for accessing Google Generative AI.
+ */
 export const initAI = (apiKey: string) => {
     genAI = new GoogleGenerativeAI(apiKey);
     model = genAI.getGenerativeModel({
@@ -24,6 +30,13 @@ export const initAI = (apiKey: string) => {
     });
 };
 
+/**
+ * Sends a prompt to the AI model and retrieves the response.
+ * 
+ * @param {string} prompt - The user's input prompt.
+ * @returns {Promise<string>} The text response from the AI.
+ * @throws {Error} Throws an error if the AI is not initialized.
+ */
 export const chatWithAI = async (prompt: string) => {
     if (!chatSession) throw new Error("AI not initialized");
     try {

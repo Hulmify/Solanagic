@@ -6,6 +6,13 @@ const AI_KEY = 'solanagic_ai_key';
 
 const isChromeStorageAvailable = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
 
+/**
+ * Saves the wallet account to storage.
+ * Uses Chrome storage if available, otherwise falls back to localStorage.
+ * 
+ * @param {WalletAccount} wallet - The wallet account to save.
+ * @returns {Promise<void>}
+ */
 export const saveWallet = async (wallet: WalletAccount): Promise<void> => {
     if (isChromeStorageAvailable) {
         return new Promise((resolve) => {
@@ -17,6 +24,11 @@ export const saveWallet = async (wallet: WalletAccount): Promise<void> => {
     }
 };
 
+/**
+ * Loads the wallet account from storage.
+ * 
+ * @returns {Promise<WalletAccount | null>} The loaded wallet account or null if not found.
+ */
 export const loadWallet = async (): Promise<WalletAccount | null> => {
     if (isChromeStorageAvailable) {
         return new Promise((resolve) => {
@@ -30,6 +42,12 @@ export const loadWallet = async (): Promise<WalletAccount | null> => {
     }
 };
 
+/**
+ * Saves the selected network to storage.
+ * 
+ * @param {Network} network - The network identifier (e.g., 'devnet', 'mainnet-beta').
+ * @returns {Promise<void>}
+ */
 export const saveNetwork = async (network: Network): Promise<void> => {
     if (isChromeStorageAvailable) {
         return new Promise((resolve) => {
@@ -41,6 +59,12 @@ export const saveNetwork = async (network: Network): Promise<void> => {
     }
 }
 
+/**
+ * Loads the selected network from storage.
+ * Defaults to 'devnet' if no network is saved.
+ * 
+ * @returns {Promise<Network>} The loaded network.
+ */
 export const loadNetwork = async (): Promise<Network> => {
     if (isChromeStorageAvailable) {
         return new Promise((resolve) => {
@@ -54,6 +78,12 @@ export const loadNetwork = async (): Promise<Network> => {
     }
 }
 
+/**
+ * Saves the AI API key to storage.
+ * 
+ * @param {string} apiKey - The Gemini API key.
+ * @returns {Promise<void>}
+ */
 export const saveApiKey = async (apiKey: string): Promise<void> => {
     if (isChromeStorageAvailable) {
         return new Promise((resolve) => {
@@ -65,6 +95,11 @@ export const saveApiKey = async (apiKey: string): Promise<void> => {
     }
 }
 
+/**
+ * Removes the AI API key from storage.
+ * 
+ * @returns {Promise<void>}
+ */
 export const clearApiKey = async (): Promise<void> => {
     if (isChromeStorageAvailable) {
         return new Promise((resolve) => {
@@ -76,6 +111,11 @@ export const clearApiKey = async (): Promise<void> => {
     }
 }
 
+/**
+ * Loads the AI API key from storage.
+ * 
+ * @returns {Promise<string | null>} The loaded API key or null if not found.
+ */
 export const loadApiKey = async (): Promise<string | null> => {
     if (isChromeStorageAvailable) {
         return new Promise((resolve) => {
@@ -88,6 +128,11 @@ export const loadApiKey = async (): Promise<string | null> => {
     }
 }
 
+/**
+ * Removes the wallet account from storage (logs out).
+ * 
+ * @returns {Promise<void>}
+ */
 export const clearWallet = async (): Promise<void> => {
     if (isChromeStorageAvailable) {
         return new Promise((resolve) => {

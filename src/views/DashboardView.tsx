@@ -12,6 +12,13 @@ interface DashboardViewProps {
     onLogout: () => void;
 }
 
+/**
+ * The main Dashboard view of the wallet.
+ * Displays balance, allows sending/receiving SOL, and interacting with the AI assistant.
+ * 
+ * @param {DashboardViewProps} props - The component props.
+ * @returns {JSX.Element} The rendered Dashboard component.
+ */
 export default function DashboardView({ wallet, network, onLogout }: DashboardViewProps) {
     const [balance, setBalance] = useState<number | null>(null);
     const [isSending, setIsSending] = useState(false);
@@ -25,6 +32,9 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
     const [isThinking, setIsThinking] = useState(false);
     const [apiKeyText, setApiKeyText] = useState('');
 
+    /**
+     * Refreshes the wallet balance from the network.
+     */
     const refreshBalance = async () => {
         const b = await getBalance(wallet.publicKey, network);
         setBalance(b);
@@ -47,6 +57,9 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
     }, []);
 
 
+    /**
+     * Handles the airdrop request on devnet.
+     */
     const handleAirdrop = async () => {
         if (network !== 'devnet' && network !== 'testnet') return;
         setStatus('Requesting Airdrop...');
@@ -69,6 +82,9 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
         }
     };
 
+    /**
+     * Handles sending SOL to another address.
+     */
     const handleSend = async () => {
         if (!amount || !recipient) return;
         setStatus('Sending...');
@@ -86,6 +102,9 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
         }
     };
 
+    /**
+     * Handles user logout and clears the wallet from storage.
+     */
     const handleLogout = async () => {
         const confirm = window.confirm("Are you sure? Make sure you have your seed phrase saved!");
         if (confirm) {
@@ -94,6 +113,9 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
         }
     }
 
+    /**
+     * Saves the provided API Key to local storage.
+     */
     const handleSaveKey = async () => {
         if (!apiKeyText) return;
         await saveApiKey(apiKeyText.trim());
@@ -101,6 +123,9 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
         initAI(apiKeyText.trim());
     };
 
+    /**
+     * Handles sending a user prompt to the AI and displaying the response.
+     */
     const handleChat = async () => {
         if (!aiInput) return;
         const prompt = aiInput;
@@ -117,6 +142,9 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
         }
     };
 
+    /**
+     * Clears the API Key from local storage.
+     */
     const handleClearApiKey = async () => {
         await clearApiKey();
         setApiKey('');
