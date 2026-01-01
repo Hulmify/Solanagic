@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { type WalletAccount, type Network, getBalance, requestAirdrop, sendSol } from '../services/wallet';
-import { clearWallet } from '../services/storage';
+import { clearApiKey, clearWallet, loadApiKey, saveApiKey } from '../services/storage';
+import { initAI, chatWithAI } from '../services/ai';
+import Markdown from 'react-markdown'
+
 
 interface DashboardViewProps {
     wallet: WalletAccount;
@@ -15,6 +18,12 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
     const [recipient, setRecipient] = useState('');
     const [amount, setAmount] = useState('');
     const [status, setStatus] = useState('');
+    const [isAI, setIsAI] = useState(false);
+    const [apiKey, setApiKey] = useState('');
+    const [aiInput, setAiInput] = useState('');
+    const [aiMessages, setAiMessages] = useState<{ role: 'user' | 'model', text: string }[]>([]);
+    const [isThinking, setIsThinking] = useState(false);
+    const [apiKeyText, setApiKeyText] = useState('');
 
     const refreshBalance = async () => {
         const b = await getBalance(wallet.publicKey, network);
@@ -27,6 +36,15 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
         const interval = setInterval(refreshBalance, 10000);
         return () => clearInterval(interval);
     }, [wallet, network]);
+
+    useEffect(() => {
+        loadApiKey().then((key) => {
+            if (key) {
+                setApiKey(key);
+                initAI(key);
+            }
+        });
+    }, []);
 
 
     const handleAirdrop = async () => {
@@ -76,6 +94,35 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
         }
     }
 
+    const handleSaveKey = async () => {
+        if (!apiKeyText) return;
+        await saveApiKey(apiKeyText.trim());
+        setApiKey(apiKeyText.trim());
+        initAI(apiKeyText.trim());
+    };
+
+    const handleChat = async () => {
+        if (!aiInput) return;
+        const prompt = aiInput;
+        setAiInput('');
+        setIsThinking(true);
+        setAiMessages(prev => [...prev, { role: 'user', text: prompt }]);
+        try {
+            const response = await chatWithAI(prompt);
+            setAiMessages(prev => [...prev, { role: 'model', text: response }]);
+        } catch (e) {
+            setAiMessages(prev => [...prev, { role: 'model', text: "Error: Could not get response. Check your API Key." }]);
+        } finally {
+            setIsThinking(false);
+        }
+    };
+
+    const handleClearApiKey = async () => {
+        await clearApiKey();
+        setApiKey('');
+        initAI('');
+    };
+
     if (isSending) {
         return (
             <div className="view-container dashboard-view">
@@ -106,6 +153,99 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
 
                     <button className="btn-primary" onClick={handleSend}>Confirm Send</button>
                     {status && <p className="status-text">{status}</p>}
+                </div>
+            </div>
+        )
+    }
+
+    if (isAI) {
+        return (
+            <div className="view-container dashboard-view">
+                <div className="header" style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    marginBottom: '1rem'
+                }}>
+                    <button onClick={() => setIsAI(false)} className="back-btn">← Back</button>
+                    <h2 style={{ margin: '0' }}>Smart Assistant</h2>
+                </div>
+                <div className="ai-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden' }}>
+                    {!apiKey ? (
+                        <div className="send-form">
+                            <p style={{ color: '#aaa', fontSize: '0.9rem', marginBottom: '1rem' }}>
+                                Enter your Gemini API Key to enable the Smart Assistant.
+                            </p>
+                            <div className="input-group">
+                                <label>Gemini API Key</label>
+                                <input
+                                    className="input-field"
+                                    type="password"
+                                    placeholder="API Key"
+                                    value={apiKeyText}
+                                    onChange={(e) => setApiKeyText(e.target.value)}
+                                />
+                            </div>
+                            <button className="btn-primary" onClick={handleSaveKey}>Save Key</button>
+                            <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#666' }}>
+                                The key is stored locally on your device.
+                            </p>
+                        </div>
+                    ) : (
+                        <>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                                <button
+                                    className="back-btn"
+                                    onClick={handleClearApiKey}
+                                    style={{
+                                        fontSize: '0.6rem',
+                                        border: `1px solid #fff`,
+                                        color: '#fff',
+                                        padding: '0.6rem',
+                                        borderRadius: '12px',
+                                        cursor: 'pointer',
+                                        transition: 'background 0.2s',
+                                    }}
+                                >
+                                    Clear Api Key
+                                </button>
+                            </div>
+                            <div className="chat-history" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                                {aiMessages.length === 0 && (
+                                    <div style={{ textAlign: 'center', color: '#666', marginTop: '2rem' }}>
+                                        <p>Ask me anything about Solana!</p>
+                                    </div>
+                                )}
+                                {aiMessages.map((msg, i) => (
+                                    <div key={i} style={{
+                                        alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                                        background: msg.role === 'user' ? '#9945FF' : '#333',
+                                        color: '#fff',
+                                        padding: '16px 24px',
+                                        borderRadius: '12px',
+                                        maxWidth: '80%',
+                                        fontSize: '0.9rem',
+                                        ["--text-secondary" as any]: "#fff",
+                                    }}>
+                                        <Markdown>{msg.text}</Markdown>
+                                    </div>
+                                ))}
+                                {isThinking && <div style={{ color: '#aaa', fontSize: '0.8rem', marginLeft: '10px' }}>Thinking...</div>}
+                            </div>
+                            <div className="chat-input" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                <input
+                                    className="input-field"
+                                    placeholder="Ask a question..."
+                                    value={aiInput}
+                                    onChange={(e) => setAiInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleChat()}
+                                />
+                                <button className="action-btn" style={{ width: '24px', height: '24px' }} onClick={handleChat}>
+                                    ➤
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         )
@@ -152,6 +292,10 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
                         <span>Airdrop</span>
                     </button>
                 ) : null}
+                <button className="action-btn" onClick={() => setIsAI(true)}>
+                    <div className="icon">✨</div>
+                    <span>Ask AI</span>
+                </button>
             </div>
 
             {status && <p className="status-text">{status}</p>}

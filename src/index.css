@@ -271,7 +271,7 @@ button {
 
 .logout-btn {
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-size: 12px;
   padding: 4px 8px;
 }

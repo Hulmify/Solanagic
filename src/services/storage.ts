@@ -2,6 +2,7 @@ import type { WalletAccount, Network } from './wallet';
 
 const STORAGE_KEY = 'solanagic_wallet';
 const NETWORK_KEY = 'solanagic_network';
+const AI_KEY = 'solanagic_ai_key';
 
 const isChromeStorageAvailable = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
 
@@ -50,6 +51,40 @@ export const loadNetwork = async (): Promise<Network> => {
     } else {
         const item = localStorage.getItem(NETWORK_KEY);
         return Promise.resolve((item as Network) || 'devnet');
+    }
+}
+
+export const saveApiKey = async (apiKey: string): Promise<void> => {
+    if (isChromeStorageAvailable) {
+        return new Promise((resolve) => {
+            chrome.storage.local.set({ [AI_KEY]: apiKey }, () => resolve());
+        });
+    } else {
+        localStorage.setItem(AI_KEY, apiKey);
+        return Promise.resolve();
+    }
+}
+
+export const clearApiKey = async (): Promise<void> => {
+    if (isChromeStorageAvailable) {
+        return new Promise((resolve) => {
+            chrome.storage.local.remove([AI_KEY], () => resolve());
+        });
+    } else {
+        localStorage.removeItem(AI_KEY);
+        return Promise.resolve();
+    }
+}
+
+export const loadApiKey = async (): Promise<string | null> => {
+    if (isChromeStorageAvailable) {
+        return new Promise((resolve) => {
+            chrome.storage.local.get([AI_KEY], (result) => {
+                resolve((result[AI_KEY] as string) || null);
+            });
+        });
+    } else {
+        return Promise.resolve(localStorage.getItem(AI_KEY));
     }
 }
 
