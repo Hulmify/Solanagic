@@ -47,10 +47,12 @@ function App() {
         <SetupView onWalletCreated={setWallet} />
       )}
       <div style={{
-        padding: 24,
+        padding: '12px 24px',
         display: 'flex',
+        flexDirection: 'column',
         justifyContent: "center",
         alignItems: "center",
+        gap: '12px'
       }}>
         <div className="network-selector">
           <select value={network} onChange={(e) => handleNetworkChange(e.target.value as Network)}>
@@ -58,6 +60,17 @@ function App() {
             <option value="testnet">Testnet</option>
             <option value="mainnet-beta">Mainnet</option>
           </select>
+        </div>
+
+        <div style={{ fontSize: '0.75rem', color: '#666', opacity: 0.8 }}>
+          <a
+            href="https://hulmify.com"
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: '#888', textDecoration: 'none' }}
+          >
+            Built by Hulmify (Zoeb Chhatriwala)
+          </a>
         </div>
       </div>
     </div>

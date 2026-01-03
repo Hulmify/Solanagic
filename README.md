@@ -1,4 +1,4 @@
-# 🪄 Solanagic: AI-Powered Wallet
+# 🪄 Solanagic: AI-Powered Solana Wallet
 
 **Solanagic** is a next-generation Chrome Extension wallet for the Solana blockchain, supercharged with Artificial Intelligence. Manage your assets, view transaction history, and interact with the blockchain using natural language commands powered by Google's Gemini AI.
 

@@ -1,9 +1,11 @@
 {
     "manifest_version": 3,
-    "name": "Solanagic: AI-Powered Wallet",
+    "name": "Solanagic: AI-Powered Solana Wallet",
     "version": "1.0.5",
     "description": "A secure, non-custodial Solana wallet with a built-in AI Smart Assistant.",
     "author": "Zoeb Chhatriwala",
+    "homepage_url": "https://hulmify.com",
+    "short_name": "Solanagic",
     "action": {
         "default_popup": "index.html",
         "default_title": "Open Solanagic",
