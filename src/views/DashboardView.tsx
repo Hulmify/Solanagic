@@ -147,25 +147,6 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
     };
 
     /**
-     * Handles sending a user prompt to the AI and displaying the response.
-     */
-    const handleChat = async () => {
-        if (!aiInput) return;
-        const prompt = aiInput;
-        setAiInput('');
-        setIsThinking(true);
-        setAiMessages(prev => [...prev, { role: 'user', text: prompt }]);
-        try {
-            const response = await chatWithAI(prompt);
-            setAiMessages(prev => [...prev, { role: 'model', text: response }]);
-        } catch (e) {
-            setAiMessages(prev => [...prev, { role: 'model', text: "Error: Could not get response. Check your API Key." }]);
-        } finally {
-            setIsThinking(false);
-        }
-    };
-
-    /**
      * Clears the API Key from local storage.
      */
     const handleClearApiKey = async () => {
@@ -187,6 +168,72 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
         } catch (e) {
             console.error(e);
             setStatus('Failed to load transactions');
+        }
+    };
+
+    /**
+     * Executes actions requested by the AI.
+     */
+    const handleAIAction = (data: any) => {
+        switch (data.action) {
+            case 'SEND':
+                setIsSending(true);
+                if (data.recipient) setRecipient(data.recipient);
+                if (data.amount) setAmount(data.amount.toString());
+                break;
+            case 'HISTORY':
+                handleHistory();
+                break;
+            case 'RECEIVE':
+                navigator.clipboard.writeText(wallet.publicKey);
+                setAiMessages(prev => [...prev, { role: 'model', text: "✅ Address copied to clipboard!" }]);
+                break;
+            case 'AIRDROP':
+                setIsAI(false);
+                handleAirdrop();
+                break;
+            case 'BALANCE':
+                setIsAI(false);
+                refreshBalance();
+                break;
+        }
+    }
+
+    /**
+     * Handles sending a user prompt to the AI and displaying the response.
+     */
+    const handleChat = async () => {
+        if (!aiInput) return;
+        const prompt = aiInput;
+        setAiInput('');
+        setIsThinking(true);
+        setAiMessages(prev => [...prev, { role: 'user', text: prompt }]);
+        try {
+            const response = await chatWithAI(prompt);
+
+            // Try to parse as JSON for actions
+            try {
+                const cleanResponse = response.trim();
+                // Simple check if it looks like JSON
+                if (cleanResponse.startsWith('{') && cleanResponse.endsWith('}')) {
+                    const actionData = JSON.parse(cleanResponse);
+                    if (actionData.action) {
+                        handleAIAction(actionData);
+                        setAiMessages(prev => [...prev, { role: 'model', text: `Executing action: ${actionData.action.toLowerCase()}...` }]);
+                    } else {
+                        setAiMessages(prev => [...prev, { role: 'model', text: response }]);
+                    }
+                } else {
+                    setAiMessages(prev => [...prev, { role: 'model', text: response }]);
+                }
+            } catch (jsonError) {
+                // Determine if natural language response or error
+                setAiMessages(prev => [...prev, { role: 'model', text: response }]);
+            }
+        } catch (e) {
+            setAiMessages(prev => [...prev, { role: 'model', text: "Error: Could not get response. Check your API Key." }]);
+        } finally {
+            setIsThinking(false);
         }
     };
 
