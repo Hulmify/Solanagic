@@ -15,8 +15,8 @@ Manage your SOL, view transactions, switch networks, and develop on Solana—all
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/ext.solanagic.git
-   cd ext.solanagic
+   git clone https://github.com/Hulmify/Solanagic.git
+   cd Solanagic
    ```
 
 2. **Install dependencies**:
