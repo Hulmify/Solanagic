@@ -53,7 +53,7 @@ export default function SetupView({ onWalletCreated }: SetupViewProps) {
     return (
         <div className="view-container setup-view">
             <h1 className="logo-text">Solanagic</h1>
-            <p className="subtitle">A secure, non-custodial Solana wallet.</p>
+            <p className="subtitle">A secure, non-custodial Solana wallet with a built-in AI Smart Assistant.</p>
 
             {step === 'start' && (
                 <div className="setup-options">
