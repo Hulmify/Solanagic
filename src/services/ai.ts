@@ -82,3 +82,18 @@ export const chatWithAI = async (prompt: string) => {
         throw e;
     }
 };
+
+/**
+ * Injects context into the AI chat session without expecting a user-facing response.
+ * Useful for providing history or wallet state.
+ * 
+ * @param {string} context - The context information to feed to the AI.
+ */
+export const injectContext = async (context: string) => {
+    if (!chatSession) return;
+    try {
+        await chatSession.sendMessage(`SYSTEM_CONTEXT: ${context}`);
+    } catch (e) {
+        console.error("Failed to inject context", e);
+    }
+};

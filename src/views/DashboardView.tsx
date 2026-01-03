@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { type WalletAccount, type Network, getBalance, requestAirdrop, sendSol, getTransactions, type TransactionInfo } from '../services/wallet';
 import { clearApiKey, clearWallet, loadApiKey, saveApiKey } from '../services/storage';
-import { initAI, chatWithAI } from '../services/ai';
+import { initAI, chatWithAI, injectContext } from '../services/ai';
 import Markdown from 'react-markdown'
 import { ArrowLeft, Send, Download, Gift, Sparkles, History, LogOut, Copy, ExternalLink, ArrowUp } from 'lucide-react';
 
@@ -11,6 +11,33 @@ interface DashboardViewProps {
     network: Network;
     setNetwork: (n: Network) => void;
     onLogout: () => void;
+}
+
+const ContextInjector = ({ wallet, network, balance, apiKey }: { wallet: WalletAccount, network: Network, balance: number | null, apiKey: string }) => {
+    useEffect(() => {
+        if (!apiKey) return;
+
+        const loadContext = async () => {
+            const txs = await getTransactions(wallet.publicKey, network, 5);
+            const txSummary = txs.map(t =>
+                `- Sig: ${t.signature.slice(0, 8)}...${t.signature.slice(-8)}, Slot: ${t.slot}, Status: ${t.err ? 'Failed' : 'Success'}, Time: ${t.blockTime ? new Date(t.blockTime * 1000).toISOString() : 'Unknown'}`
+            ).join('\n');
+
+            const context = `
+Current Wallet State:
+- Address: ${wallet.publicKey}
+- Network: ${network}
+- Balance: ${balance} SOL
+- Recent 5 Transactions:
+${txSummary || "No recent transactions found."}
+             `;
+
+            injectContext(context);
+        };
+        loadContext();
+    }, [wallet, network, balance, apiKey]);
+
+    return null;
 }
 
 /**
@@ -390,6 +417,12 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
                                     Clear Api Key
                                 </button>
                             </div>
+                            <ContextInjector
+                                wallet={wallet}
+                                network={network}
+                                balance={balance}
+                                apiKey={apiKey}
+                            />
                             <div className="chat-history" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
                                 {aiMessages.length === 0 && (
                                     <div style={{ textAlign: 'center', color: '#666', marginTop: '2rem' }}>
