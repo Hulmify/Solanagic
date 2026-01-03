@@ -270,6 +270,9 @@ button {
 }
 
 .logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   background: transparent;
   color: var(--text-primary);
   font-size: 14px;
@@ -324,22 +327,24 @@ button {
 
 .actions-grid {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-evenly;
   margin-bottom: 24px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .action-btn {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
-  width: 70px;
-  height: 70px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 }
 
 .action-btn:hover {
@@ -365,6 +370,9 @@ button {
 }
 
 .back-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   background: transparent;
   color: var(--text-primary);
   font-size: 14px;

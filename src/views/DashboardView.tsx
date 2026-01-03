@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { type WalletAccount, type Network, getBalance, requestAirdrop, sendSol } from '../services/wallet';
+import { type WalletAccount, type Network, getBalance, requestAirdrop, sendSol, getTransactions, type TransactionInfo } from '../services/wallet';
 import { clearApiKey, clearWallet, loadApiKey, saveApiKey } from '../services/storage';
 import { initAI, chatWithAI } from '../services/ai';
 import Markdown from 'react-markdown'
+import { ArrowLeft, Send, Download, Gift, Sparkles, History, LogOut, Copy, ExternalLink, ArrowUp } from 'lucide-react';
 
 
 interface DashboardViewProps {
@@ -31,6 +32,8 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
     const [aiMessages, setAiMessages] = useState<{ role: 'user' | 'model', text: string }[]>([]);
     const [isThinking, setIsThinking] = useState(false);
     const [apiKeyText, setApiKeyText] = useState('');
+    const [isHistory, setIsHistory] = useState(false);
+    const [transactions, setTransactions] = useState<TransactionInfo[]>([]);
 
     // Reference to the interval
     const intervalRef = useRef<NodeJS.Timeout>(null);
@@ -90,7 +93,7 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
         } catch (e: any) {
             // Check if the error is a rate limit error
             if (e.message.includes("429")) {
-                setStatus('Airdrop rate limit exceeded for today, please try again tomorrow!');
+                setStatus('Airdrop rate limit exceeded, please try again in a while!');
                 return;
             }
 
@@ -171,11 +174,30 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
         initAI('');
     };
 
+    /**
+     * Fetches and displays transaction history.
+     */
+    const handleHistory = async () => {
+        setIsHistory(true);
+        setStatus('Loading transactions...');
+        try {
+            const txs = await getTransactions(wallet.publicKey, network);
+            setTransactions(txs);
+            setStatus('');
+        } catch (e) {
+            console.error(e);
+            setStatus('Failed to load transactions');
+        }
+    };
+
     if (isSending) {
         return (
             <div className="view-container dashboard-view">
                 <div className="header">
-                    <button onClick={() => setIsSending(false)} className="back-btn">← Back</button>
+                    <button onClick={() => setIsSending(false)} className="back-btn">
+                        <ArrowLeft size={20} />
+                        <span>Back</span>
+                    </button>
                     <h2 style={{ margin: '0' }}>Send SOL</h2>
                 </div>
                 <div className="send-form">
@@ -206,11 +228,79 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
         )
     }
 
+    if (isHistory) {
+        return (
+            <div className="view-container dashboard-view">
+                <div className="header">
+                    <button onClick={() => setIsHistory(false)} className="back-btn">
+                        <ArrowLeft size={20} />
+                        <span>Back</span>
+                    </button>
+                    <h2 style={{ margin: '0' }}>History</h2>
+                </div>
+                <div className="history-list" style={{ flex: 1, overflowY: 'auto', width: '100%', marginTop: '1rem' }}>
+                    {transactions.length === 0 ? (
+                        <p style={{ textAlign: 'center', color: '#888' }}>
+                            {status || 'No transactions found.'}
+                        </p>
+                    ) : (
+                        transactions.map((tx) => (
+                            <div key={tx.signature} className="tx-item" style={{
+                                padding: '12px',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                marginBottom: '8px',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '4px'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{
+                                        color: tx.err ? '#ff4d4d' : '#4caf50',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        {tx.err ? 'Failed' : 'Success'}
+                                    </span>
+                                    <span style={{ fontSize: '0.75rem', color: '#888' }}>
+                                        {tx.blockTime ? new Date(tx.blockTime * 1000).toLocaleString() : 'Pending'}
+                                    </span>
+                                </div>
+                                <div style={{
+                                    fontSize: '0.8rem',
+                                    color: '#ccc',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    fontFamily: 'monospace'
+                                }}>
+                                    {tx.signature}
+                                </div>
+                                <a
+                                    href={`https://explorer.solana.com/tx/${tx.signature}?cluster=${network === 'mainnet-beta' ? 'mainnet-beta' : network}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{ fontSize: '0.75rem', color: '#9945FF', textDecoration: 'none' }}
+                                >
+                                    View on Explorer <ExternalLink size={12} style={{ display: 'inline', marginLeft: '4px' }} />
+                                </a>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+        )
+    }
+
     if (isAI) {
         return (
             <div className="view-container dashboard-view">
                 <div className="header">
-                    <button onClick={() => setIsAI(false)} className="back-btn">← Back</button>
+                    <button onClick={() => setIsAI(false)} className="back-btn">
+                        <ArrowLeft size={20} />
+                        <span>Back</span>
+                    </button>
                     <h2 style={{ margin: '0' }}>Smart Assistant</h2>
                 </div>
                 <div className="ai-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden' }}>
@@ -282,8 +372,8 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
                                     onChange={(e) => setAiInput(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleChat()}
                                 />
-                                <button className="action-btn" style={{ width: '24px', height: '24px' }} onClick={handleChat}>
-                                    ➤
+                                <button className="action-btn" style={{ width: '40px', height: '40px', borderRadius: '12px' }} onClick={handleChat}>
+                                    <ArrowUp size={20} />
                                 </button>
                             </div>
                         </>
@@ -296,7 +386,10 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
     return (
         <div className="view-container dashboard-view">
             <div className="top-bar" style={{ justifyContent: 'flex-end' }}>
-                <button className="logout-btn" onClick={handleLogout}>{'Logout'}</button>
+                <button className="logout-btn" onClick={handleLogout}>
+                    <LogOut size={16} />
+                    <span style={{ marginLeft: '4px' }}>Logout</span>
+                </button>
             </div>
             <div className="balance-card">
                 <p className="label">Total Balance</p>
@@ -310,14 +403,14 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
                         {wallet.publicKey.slice(0, 6)}...{wallet.publicKey.slice(-6)}
                     </p>
                     <span className="copy-icon">
-                        (Click to copy)
+                        <Copy size={12} />
                     </span>
                 </div>
             </div>
 
             <div className="actions-grid">
                 <button className="action-btn" onClick={() => setIsSending(true)}>
-                    <div className="icon">↑</div>
+                    <div className="icon"><Send size={24} /></div>
                     <span>Send</span>
                 </button>
                 <button className="action-btn" onClick={() => {
@@ -325,18 +418,23 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
                     setStatus('Address copied!');
                     setTimeout(() => setStatus(''), 2000);
                 }}>
-                    <div className="icon">↓</div>
+                    <div className="icon"><Download size={24} /></div>
                     <span>Receive</span>
                 </button>
                 {network === 'devnet' || network === 'testnet' ? (
                     <button className="action-btn" onClick={handleAirdrop}>
-                        <div className="icon">+</div>
+                        <div className="icon"><Gift size={24} /></div>
                         <span>Airdrop</span>
                     </button>
                 ) : null}
                 <button className="action-btn" onClick={() => setIsAI(true)}>
-                    <div className="icon">✨</div>
+                    <div className="icon"><Sparkles size={24} /></div>
                     <span>Ask AI</span>
+                </button>
+
+                <button className="action-btn" onClick={handleHistory}>
+                    <div className="icon"><History size={24} /></div>
+                    <span>History</span>
                 </button>
             </div>
 

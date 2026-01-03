@@ -119,3 +119,42 @@ export const sendSol = async (
     );
     return signature;
 };
+
+export interface TransactionInfo {
+    signature: string;
+    slot: number;
+    err: any;
+    memo: string | null;
+    blockTime?: number | null;
+}
+
+/**
+ * Fetches the transaction history for a given wallet address.
+ * 
+ * @param {string} publicKeyStr - The public key of the wallet.
+ * @param {Network} network - The Solana network.
+ * @param {number} limit - The maximum number of transactions to fetch (default is 10).
+ * @returns {Promise<TransactionInfo[]>} A list of transaction signatures and metadata.
+ */
+export const getTransactions = async (
+    publicKeyStr: string,
+    network: Network,
+    limit: number = 20
+): Promise<TransactionInfo[]> => {
+    try {
+        const connection = new Connection(clusterApiUrl(network), 'confirmed');
+        const publicKey = new PublicKey(publicKeyStr);
+        const signatures = await connection.getSignaturesForAddress(publicKey, { limit });
+
+        return signatures.map(sig => ({
+            signature: sig.signature,
+            slot: sig.slot,
+            err: sig.err,
+            memo: sig.memo,
+            blockTime: sig.blockTime
+        }));
+    } catch (e) {
+        console.error("Failed to fetch transactions", e);
+        return [];
+    }
+};
