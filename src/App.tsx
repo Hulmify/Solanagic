@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react';
-import { loadWallet, loadNetwork, saveNetwork } from './services/storage';
+import { loadWallet, loadNetwork, saveNetwork, clearWallet } from './services/storage';
 import type { WalletAccount, Network } from './services/wallet';
 import SetupView from './views/SetupView';
 import DashboardView from './views/DashboardView';
+import UnlockView from './views/UnlockView';
 
 /**
  * The main application component.
- * Manages the wallet state, network selection, and routing between SetupView and DashboardView.
+ * Manages the wallet state, network selection, and routing between views.
  * 
  * @returns {JSX.Element} The rendered App component.
  */
 function App() {
   const [wallet, setWallet] = useState<WalletAccount | null>(null);
+  const [encryptedWallet, setEncryptedWallet] = useState<string | null>(null);
   const [network, setNetwork] = useState<Network>('devnet');
   const [loading, setLoading] = useState(true);
 
@@ -19,7 +21,13 @@ function App() {
     const init = async () => {
       const w = await loadWallet();
       const n = await loadNetwork();
-      setWallet(w);
+
+      if (typeof w === 'string') {
+        setEncryptedWallet(w);
+      } else {
+        setWallet(w);
+      }
+
       setNetwork(n);
       setLoading(false);
     };
@@ -36,15 +44,68 @@ function App() {
     await saveNetwork(n);
   };
 
+  const handleLogout = () => {
+    // If encrypted, just lock (clear wallet state, keep encrypted state)
+    // If legacy, clear everything (conceptually "Reset" or just "Logout")
+
+    // Note: DashboardView handles the "Clear Storage" for legacy/reset cases before calling this if needed.
+    // Except here we want to ensure state is correct.
+
+    // If we have an encrypted wallet string in memory (even if current wallet is null, which shouldn't happen when calling logout),
+    // or if we can reload it.
+
+    // Check if we are in encrypted mode
+    if (encryptedWallet || typeof loadWallet() === 'string') { // simplified check logic relies on state
+      setWallet(null);
+      // encryptedWallet should already be set if we are logged in, 
+      // but if we are legacy, it is null.
+    } else {
+      setWallet(null);
+    }
+
+    // Re-verify encryption state from storage to be safe
+    loadWallet().then(w => {
+      if (typeof w === 'string') {
+        setEncryptedWallet(w);
+        setWallet(null);
+      } else {
+        // Legacy or empty
+        setWallet(null);
+        setEncryptedWallet(null);
+      }
+    });
+  };
+
+  const handleReset = async () => {
+    await clearWallet();
+    setWallet(null);
+    setEncryptedWallet(null);
+  };
 
   if (loading) return <div className="loading-screen">Loading...</div>;
 
   return (
     <div className="app-container">
       {wallet ? (
-        <DashboardView wallet={wallet} network={network} setNetwork={setNetwork} onLogout={() => setWallet(null)} />
+        <DashboardView
+          wallet={wallet}
+          network={network}
+          setNetwork={setNetwork}
+          onLogout={handleLogout}
+          isEncrypted={!!encryptedWallet}
+        />
+      ) : encryptedWallet ? (
+        <UnlockView
+          encryptedWallet={encryptedWallet}
+          onUnlock={setWallet}
+          onReset={handleReset}
+        />
       ) : (
-        <SetupView onWalletCreated={setWallet} />
+        <SetupView onWalletCreated={async (w) => {
+          const res = await loadWallet();
+          if (typeof res === 'string') setEncryptedWallet(res);
+          setWallet(w);
+        }} />
       )}
       <div style={{
         padding: '12px 24px',

@@ -3,7 +3,7 @@ import { type WalletAccount, type Network, getBalance, requestAirdrop, sendSol, 
 import { clearApiKey, clearWallet, loadApiKey, saveApiKey } from '../services/storage';
 import { initAI, chatWithAI, injectContext } from '../services/ai';
 import Markdown from 'react-markdown'
-import { ArrowLeft, Send, Download, Gift, Sparkles, History, LogOut, Copy, ExternalLink, ArrowUp } from 'lucide-react';
+import { ArrowLeft, Send, Download, Gift, Sparkles, History, LogOut, Lock, Copy, ExternalLink, ArrowUp } from 'lucide-react';
 
 
 interface DashboardViewProps {
@@ -11,6 +11,7 @@ interface DashboardViewProps {
     network: Network;
     setNetwork: (n: Network) => void;
     onLogout: () => void;
+    isEncrypted?: boolean;
 }
 
 const ContextInjector = ({ wallet, network, balance, apiKey }: { wallet: WalletAccount, network: Network, balance: number | null, apiKey: string }) => {
@@ -47,7 +48,7 @@ ${txSummary || "No recent transactions found."}
  * @param {DashboardViewProps} props - The component props.
  * @returns {JSX.Element} The rendered Dashboard component.
  */
-export default function DashboardView({ wallet, network, onLogout }: DashboardViewProps) {
+export default function DashboardView({ wallet, network, onLogout, isEncrypted }: DashboardViewProps) {
     const [balance, setBalance] = useState<number | null>(null);
     const [isSending, setIsSending] = useState(false);
     const [recipient, setRecipient] = useState('');
@@ -155,11 +156,18 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
     /**
      * Handles user logout and clears the wallet from storage.
      */
+    /**
+     * Handles user logout/lock.
+     */
     const handleLogout = async () => {
-        const confirm = window.confirm("Are you sure? Make sure you have your seed phrase saved!");
-        if (confirm) {
-            await clearWallet();
+        if (isEncrypted) {
             onLogout();
+        } else {
+            const confirm = window.confirm("Are you sure? Make sure you have your seed phrase saved!");
+            if (confirm) {
+                await clearWallet();
+                onLogout();
+            }
         }
     }
 
@@ -467,8 +475,8 @@ export default function DashboardView({ wallet, network, onLogout }: DashboardVi
         <div className="view-container dashboard-view">
             <div className="top-bar" style={{ justifyContent: 'flex-end' }}>
                 <button className="logout-btn" onClick={handleLogout}>
-                    <LogOut size={16} />
-                    <span style={{ marginLeft: '4px' }}>Logout</span>
+                    {isEncrypted ? <Lock size={16} /> : <LogOut size={16} />}
+                    <span style={{ marginLeft: '4px' }}>{isEncrypted ? 'Lock' : 'Logout'}</span>
                 </button>
             </div>
             <div className="balance-card">

@@ -13,13 +13,14 @@ const isChromeStorageAvailable = typeof chrome !== 'undefined' && chrome.storage
  * @param {WalletAccount} wallet - The wallet account to save.
  * @returns {Promise<void>}
  */
-export const saveWallet = async (wallet: WalletAccount): Promise<void> => {
+export const saveWallet = async (walletData: string | WalletAccount): Promise<void> => {
     if (isChromeStorageAvailable) {
         return new Promise((resolve) => {
-            chrome.storage.local.set({ [STORAGE_KEY]: wallet }, () => resolve());
+            chrome.storage.local.set({ [STORAGE_KEY]: walletData }, () => resolve());
         });
     } else {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(wallet));
+        const dataToSave = typeof walletData === 'string' ? walletData : JSON.stringify(walletData);
+        localStorage.setItem(STORAGE_KEY, dataToSave);
         return Promise.resolve();
     }
 };
@@ -27,18 +28,31 @@ export const saveWallet = async (wallet: WalletAccount): Promise<void> => {
 /**
  * Loads the wallet account from storage.
  * 
- * @returns {Promise<WalletAccount | null>} The loaded wallet account or null if not found.
+ * @returns {Promise<string | WalletAccount | null>} The loaded wallet account (if legacy) or encrypted string, or null.
  */
-export const loadWallet = async (): Promise<WalletAccount | null> => {
+export const loadWallet = async (): Promise<string | WalletAccount | null> => {
     if (isChromeStorageAvailable) {
         return new Promise((resolve) => {
             chrome.storage.local.get([STORAGE_KEY], (result) => {
-                resolve((result[STORAGE_KEY] as WalletAccount) || null);
+                resolve((result[STORAGE_KEY] as (string | WalletAccount)) || null);
             });
         });
     } else {
         const item = localStorage.getItem(STORAGE_KEY);
-        return Promise.resolve(item ? JSON.parse(item) : null);
+        if (!item) return Promise.resolve(null);
+        try {
+            // Try parsing as JSON (legacy object or stringified object)
+            // If it's a simple string (encrypted), JSON.parse might fail or return the string if it was JSON stringified?
+            // Actually localStorage stores everything as string.
+            // If we stored "U2..." (encrypted) in localStorage, getting it back is "U2...".
+            // If we stored JSON.stringify({pk:..}), getting it back is "{pk:..}".
+            // We need to differentiate.
+            const parsed = JSON.parse(item);
+            return Promise.resolve(parsed);
+        } catch (e) {
+            // likely a plain string that isn't JSON, or just return the item
+            return Promise.resolve(item);
+        }
     }
 };
 
