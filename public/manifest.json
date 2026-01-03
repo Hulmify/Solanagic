@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Solanagic Wallet",
+    "name": "Solanagic: AI-Powered Wallet",
     "version": "1.0.4",
     "description": "A secure, non-custodial Solana wallet with a built-in AI Smart Assistant.",
     "author": "Zoeb Chhatriwala",
