@@ -1,21 +1,8 @@
 # 🪄 Solanagic: AI-Powered Solana Wallet
 
-**Solanagic** is a next-generation Chrome Extension wallet for the Solana blockchain, supercharged with Artificial Intelligence. Manage your assets, view transaction history, and interact with the blockchain using natural language commands powered by Google's Gemini AI.
+**Solanagic** is a modern, non-custodial crypto wallet for the Solana blockchain, designed for both everyday users and developers. It provides fast, secure, and simple wallet management across Solana networks, with an optional AI assistant to make common actions easier.
 
-## ✨ Features
-
-- **🤖 Smart AI Assistant**: 
-  - Chat with your wallet! Ask questions about Solana, check your balance, or analyze transactions.
-  - **Action-Oriented**: Instruct the AI to "Send SOL", "Show History", or "Get an Airdrop" and it will execute the action for you.
-  - **Context-Aware**: The AI knows your wallet address, balance, and recent transaction history for smarter responses.
-- **💼 Full Wallet Management**:
-  - **Create & Import**: Generate new wallets or import existing ones via seed phrase.
-  - **Send & Receive**: Easily send SOL and copy your address via QR code (future) or clipboard.
-  - **Transaction History**: View detailed logs of your recent transactions with links to Solana Explorer.
-- **🌍 Multi-Network Support**: Seamlessly switch between **Mainnet Beta**, **Devnet**, and **Testnet**.
-- **💧 Devnet Airdrop**: One-click airdrop request for testing purposes.
-- **🔒 Secure**: private keys and API keys are stored locally and encrypted. You explicitly manage your Gemini API Key.
-- **🎨 Modern UI**: a sleek, dark-themed interface built with React and beautiful icons.
+Manage your SOL, view transactions, switch networks, and develop on Solana—all from a clean and intuitive Chrome extension.
 
 ## 🚀 Getting Started
 
