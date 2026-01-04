@@ -71,7 +71,9 @@ export default function UnlockView({ encryptedWallet, onUnlock, onReset }: Unloc
 
                 <div className="reset-section">
                     <button className="btn-text danger-text" onClick={() => {
-                        if (confirm('This will delete your current wallet. Are you sure?')) {
+                        if (confirm(`This will reset your current wallet.
+                             You will need to restore from seed to access your wallet again.
+                             Are you sure?`)) {
                             onReset();
                         }
                     }}>
